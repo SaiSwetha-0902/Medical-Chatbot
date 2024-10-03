@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Chatbot</title>
+    <style>
+        /* Add your styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #chat-container {
+            height: 400px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #user-input {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Medical Chatbot</h1>
+    
+    <div id="chat-container">
+        {% for utterance in dialogue_state.get_previous_utterances() %}
+            <p class="{{ utterance.speaker.lower() }}">{{ utterance.speaker }}: {{ utterance.text }}</p>
+        {% endfor %}
+    </div>
+    
+
+    <form method="POST" id="user-input">
+        <input type="text" name="user_input" placeholder="Type your message">
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to scroll the chat container to the bottom
+            function scrollToBottom() {
+                var chatContainer = document.getElementById('chat-container');
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+    
+            // Add an event listener to the form
+            document.getElementById('user-input').addEventListener('submit', function(event) {
+                event.preventDefault();
+    
+                // Get the user input
+                var userInput = document.getElementsByName('user_input')[0].value;
+    
+                // Add the user's input to the chat container
+                var chatContainer = document.getElementById('chat-container');
+                var userMessage = document.createElement('p');
+                userMessage.textContent = 'You: ' + userInput;
+                chatContainer.appendChild(userMessage);
+    
+                // Scroll to the bottom of the chat container
+                scrollToBottom();
+    
+                // Clear the input field
+                document.getElementsByName('user_input')[0].value = '';
+    
+                // Send a POST request to the server with the user input
+                fetch('/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'user_input=' + encodeURIComponent(userInput),
+                })
+                .then(response => response.text())
+                .then(data => {
+                    // Add the chatbot's response to the chat container
+                    var chatbotMessage = document.createElement('p');
+                    chatbotMessage.innerHTML = 'Chatbot: ' + data.response;
+                    chatContainer.appendChild(chatbotMessage);
+    
+                    // Scroll to the bottom of the chat container
+                    scrollToBottom();
+                });
+            });
+        });
+    </script>
+    
+</body>
+</html>
